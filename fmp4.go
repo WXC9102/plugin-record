@@ -65,6 +65,7 @@ func (r *FMP4Recorder) Close() error {
 			r.audio.fragment = nil
 		}
 		r.File.Close()
+		r.RenameTmpFile()
 	}
 	return nil
 }

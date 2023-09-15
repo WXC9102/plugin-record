@@ -72,6 +72,9 @@ func (r *Record) NeedRecord(streamPath string) bool {
 }
 
 func (r *Record) Init() {
+	if !r.AutoRecord {
+		return
+	}
 	os.MkdirAll(r.Path, 0766)
 	if r.Filter != "" {
 		r.filterReg = regexp.MustCompile(r.Filter)

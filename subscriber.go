@@ -2,9 +2,12 @@ package record
 
 import (
 	"bufio"
+	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -34,7 +37,7 @@ func (r *Recorder) GetRecorder() *Recorder {
 }
 
 func (r *Recorder) CreateFile() (f FileWr, err error) {
-	r.filePath = r.getFileName(r.Stream.Path) + r.Ext
+	r.filePath = r.getFileName(r.Stream.Path) + r.Ext + ".tmp"
 	f, err = r.CreateFileFn(r.filePath, r.append)
 	logFields := []zap.Field{zap.String("path", r.filePath)}
 	if fw, ok := f.(*FileWriter); ok && r.Config != nil {
@@ -69,7 +72,8 @@ func (r *Recorder) start(re IRecorder, streamPath string, subType byte) (err err
 	err = plugin.Subscribe(streamPath, re)
 	if err == nil {
 		if _, loaded := RecordPluginConfig.recordings.LoadOrStore(r.ID, re); loaded {
-			return ErrRecordExist
+			// return ErrRecordExist
+			return nil
 		}
 		r.Closer = re
 		go func() {
@@ -119,4 +123,18 @@ func (r *Recorder) OnEvent(event any) {
 	default:
 		r.Subscriber.OnEvent(event)
 	}
+}
+
+func (r *Recorder) RenameTmpFile() error {
+	if r.Fragment != 0 {
+		tmpFileName := filepath.Join(r.Path, r.filePath)
+		tokens := strings.Split(tmpFileName, ".")
+		if len(tokens) != 3 || tokens[2] != "tmp" {
+			return nil
+		}
+
+		return os.Rename(tmpFileName, fmt.Sprintf("%s.%d.%s", tokens[0], time.Now().Unix(), tokens[1]))
+	}
+
+	return nil
 }

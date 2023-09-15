@@ -6,6 +6,7 @@ import (
 	"io"
 	"sync"
 
+	"go.uber.org/zap"
 	. "m7s.live/engine/v4"
 	"m7s.live/engine/v4/codec"
 	"m7s.live/engine/v4/config"
@@ -68,25 +69,25 @@ func (conf *RecordConfig) OnEvent(event any) {
 		conf.Raw.Init()
 		conf.RawAudio.Init()
 	case SEpublish:
-		streamPath := v.Target.Path
-		if conf.Flv.NeedRecord(streamPath) {
-			go NewFLVRecorder().Start(streamPath)
-		}
-		if conf.Mp4.NeedRecord(streamPath) {
-			go NewMP4Recorder().Start(streamPath)
-		}
-		if conf.Fmp4.NeedRecord(streamPath) {
-			go NewFMP4Recorder().Start(streamPath)
-		}
-		if conf.Hls.NeedRecord(streamPath) {
-			go NewHLSRecorder().Start(streamPath)
-		}
-		if conf.Raw.NeedRecord(streamPath) {
-			go NewRawRecorder().Start(streamPath)
-		}
-		if conf.RawAudio.NeedRecord(streamPath) {
-			go NewRawAudioRecorder().Start(streamPath)
-		}
+		// streamPath := v.Target.Path
+		// if conf.Flv.NeedRecord(streamPath) {
+		// 	go NewFLVRecorder().Start(streamPath)
+		// }
+		// if conf.Mp4.NeedRecord(streamPath) {
+		// 	go NewMP4Recorder().Start(streamPath)
+		// }
+		// if conf.Fmp4.NeedRecord(streamPath) {
+		// 	go NewFMP4Recorder().Start(streamPath)
+		// }
+		// if conf.Hls.NeedRecord(streamPath) {
+		// 	go NewHLSRecorder().Start(streamPath)
+		// }
+		// if conf.Raw.NeedRecord(streamPath) {
+		// 	go NewRawRecorder().Start(streamPath)
+		// }
+		// if conf.RawAudio.NeedRecord(streamPath) {
+		// 	go NewRawAudioRecorder().Start(streamPath)
+		// }
 	}
 }
 func (conf *RecordConfig) getRecorderConfigByType(t string) (recorder *Record) {
@@ -105,6 +106,43 @@ func (conf *RecordConfig) getRecorderConfigByType(t string) (recorder *Record) {
 		recorder = &conf.RawAudio
 	}
 	return
+}
+
+func (conf *RecordConfig) Start(streamPath string, format string) (string, error) {
+	var id string
+	var err error
+
+	var irecorder IRecorder
+	switch format {
+	case "flv":
+		irecorder = NewFLVRecorder()
+	case "mp4":
+		irecorder = NewMP4Recorder()
+	case "fmp4":
+		irecorder = NewFMP4Recorder()
+	case "hls":
+		irecorder = NewHLSRecorder()
+	case "raw":
+		irecorder = NewRawRecorder()
+	case "raw_audio":
+		irecorder = NewRawAudioRecorder()
+	default:
+		err = errors.New("type not supported")
+	}
+	if err != nil {
+		return id, err
+	}
+
+	id = irecorder.GetRecorder().ID
+	err = irecorder.Start(streamPath)
+
+	return id, err
+}
+
+func (conf *RecordConfig) Stop(id string) {
+	if recorder, ok := conf.recordings.Load(id); ok {
+		recorder.(ISubscriber).Stop(zap.String("reason", ""))
+	}
 }
 
 func getFLVDuration(file io.ReadSeeker) uint32 {
