@@ -48,7 +48,7 @@ func (r *Recorder) CreateFile() (f FileWr, err error) {
 		}
 	}
 	if err == nil {
-		r.Info("create file", logFields...)
+		// r.Info("create file", logFields...)
 	} else {
 		logFields = append(logFields, zap.Error(err))
 		r.Error("create file", logFields...)

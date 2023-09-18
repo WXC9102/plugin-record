@@ -60,7 +60,8 @@ var RecordPluginConfig = &RecordConfig{
 var plugin = InstallPlugin(RecordPluginConfig)
 
 func (conf *RecordConfig) OnEvent(event any) {
-	switch v := event.(type) {
+	// switch v := event.(type) {
+	switch event.(type) {
 	case FirstConfig, config.Config:
 		conf.Flv.Init()
 		conf.Mp4.Init()
