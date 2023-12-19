@@ -3,6 +3,7 @@ package record
 import (
 	"github.com/edgeware/mp4ff/aac"
 	"github.com/edgeware/mp4ff/mp4"
+	"go.uber.org/zap"
 	. "m7s.live/engine/v4"
 	"m7s.live/engine/v4/codec"
 )
@@ -84,17 +85,26 @@ func (r *FMP4Recorder) OnEvent(event any) {
 			moov.AddChild(newTrak)
 			moov.Mvex.AddChild(mp4.CreateTrex(trackID))
 			r.video.trackId = trackID
+
+			var err error
 			switch r.Video.CodecID {
 			case codec.CodecID_H264:
 				r.ftyp = mp4.NewFtyp("isom", 0x200, []string{
 					"isom", "iso2", "avc1", "mp41",
 				})
-				newTrak.SetAVCDescriptor("avc1", r.Video.ParamaterSets[0:1], r.Video.ParamaterSets[1:2], true)
+				err = newTrak.SetAVCDescriptor("avc1", r.Video.ParamaterSets[0:1], r.Video.ParamaterSets[1:2], true)
 			case codec.CodecID_H265:
 				r.ftyp = mp4.NewFtyp("isom", 0x200, []string{
 					"isom", "iso2", "hvc1", "mp41",
 				})
-				newTrak.SetHEVCDescriptor("hvc1", r.Video.ParamaterSets[0:1], r.Video.ParamaterSets[1:2], r.Video.ParamaterSets[2:3], true)
+				err = newTrak.SetHEVCDescriptor("hvc1", r.Video.ParamaterSets[0:1], r.Video.ParamaterSets[1:2], r.Video.ParamaterSets[2:3], true)
+			default:
+				r.Error("unknown type ", zap.Int("codecID", int(r.Video.CodecID)))
+			}
+
+			if err != nil {
+				r.Error("trak set descriptor failed ", zap.Error(err), zap.Int("codecID", int(r.Video.CodecID)),
+					zap.ByteStrings("parameter set", r.Video.ParamaterSets))
 			}
 		}
 		if r.AudioReader != nil {
