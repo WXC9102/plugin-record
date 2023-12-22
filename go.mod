@@ -3,7 +3,7 @@ module m7s.live/plugin/record/v4
 go 1.19
 
 require (
-	github.com/edgeware/mp4ff v0.30.1
+	github.com/Eyevinn/mp4ff v0.38.1
 	github.com/yapingcat/gomedia v0.0.0-20230727105416-c491e66c9d2a
 	go.uber.org/zap v1.24.0
 	m7s.live/engine/v4 v4.13.8

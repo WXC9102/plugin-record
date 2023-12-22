@@ -3,8 +3,8 @@ package record
 import (
 	"fmt"
 
-	"github.com/edgeware/mp4ff/aac"
-	"github.com/edgeware/mp4ff/mp4"
+	"github.com/Eyevinn/mp4ff/aac"
+	"github.com/Eyevinn/mp4ff/mp4"
 	"go.uber.org/zap"
 	. "m7s.live/engine/v4"
 	"m7s.live/engine/v4/codec"
@@ -102,7 +102,7 @@ func (r *FMP4Recorder) OnEvent(event any) {
 					"isom", "iso2", "hvc1", "mp41",
 				})
 				paramStr = fmt.Sprintf("vps %x; sps %x; pps %x", r.Video.ParamaterSets[0:1], r.Video.ParamaterSets[1:2], r.Video.ParamaterSets[2:3])
-				err = newTrak.SetHEVCDescriptor("hvc1", r.Video.ParamaterSets[0:1], r.Video.ParamaterSets[1:2], r.Video.ParamaterSets[2:3], true)
+				err = newTrak.SetHEVCDescriptor("hvc1", r.Video.ParamaterSets[0:1], r.Video.ParamaterSets[1:2], r.Video.ParamaterSets[2:3], nil, true)
 			default:
 				r.Error("unknown type ", zap.Int("codecID", int(r.Video.CodecID)))
 			}
