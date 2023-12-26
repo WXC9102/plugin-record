@@ -141,8 +141,8 @@ func (conf *RecordConfig) Start(streamPath string, format string) (string, error
 }
 
 func (conf *RecordConfig) Stop(id string) {
-	if recorder, ok := conf.recordings.Load(id); ok {
-		recorder.(ISubscriber).Stop(zap.String("reason", ""))
+	if recorder, ok := conf.recordings.LoadAndDelete(id); ok {
+		recorder.(ISubscriber).Stop(zap.String("reason", "api stop"))
 	}
 }
 

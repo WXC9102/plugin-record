@@ -78,7 +78,9 @@ func (r *Recorder) start(re IRecorder, streamPath string, subType byte) (err err
 		r.Closer = re
 		go func() {
 			r.PlayBlock(subType)
-			RecordPluginConfig.recordings.Delete(r.ID)
+			if recorder, ok := RecordPluginConfig.recordings.LoadAndDelete(r.ID); ok {
+				recorder.(ISubscriber).Stop(zap.String("reason", "playblock terminate"))
+			}
 		}()
 	}
 	return
